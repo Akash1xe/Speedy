@@ -1,10 +1,10 @@
 import { formatDuration } from "@/lib/calculateStats";
 
-type Props = { elapsedTime: number; wpm: number; accuracy: number; errors: number; progress: number };
+type Props = { elapsedTime: number; remainingTime?: number; wpm: number; accuracy: number; errors: number; progress: number };
 
-export function TypingStats({ elapsedTime, wpm, accuracy, errors, progress }: Props) {
+export function TypingStats({ elapsedTime, remainingTime, wpm, accuracy, errors, progress }: Props) {
   const items = [
-    ["Time", formatDuration(elapsedTime)], ["WPM", String(wpm)], ["Accuracy", `${accuracy.toFixed(1)}%`],
+    [remainingTime === undefined ? "Time" : "Time left", formatDuration(remainingTime ?? elapsedTime)], ["WPM", String(wpm)], ["Accuracy", `${accuracy.toFixed(1)}%`],
     ["Errors", String(errors)], ["Progress", `${Math.floor(progress)}%`],
   ];
   return (
@@ -12,7 +12,7 @@ export function TypingStats({ elapsedTime, wpm, accuracy, errors, progress }: Pr
       {items.map(([label, value]) => (
         <div key={label} className="border-border sm:border-r sm:last:border-0 sm:text-center">
           <div className="text-[11px] font-semibold uppercase tracking-[.14em] text-muted">{label}</div>
-          <div className={`mt-1 font-mono text-xl font-medium ${label === "Errors" && value !== "0" ? "text-error" : "text-text"}`}>{value}</div>
+          <div className={`mt-1 font-mono text-xl font-medium ${(label === "Errors" && value !== "0") || (label === "Time left" && remainingTime !== undefined && remainingTime <= 10) ? "text-error" : "text-text"}`}>{value}</div>
         </div>
       ))}
     </div>

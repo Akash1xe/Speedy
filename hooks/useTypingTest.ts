@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { calculateAccuracy, calculateWpm } from "@/lib/calculateStats";
+import type { FinishReason } from "@/types/typing";
 
-type CompletionSnapshot = { elapsedTime: number; wpm: number; accuracy: number; errors: number };
+type CompletionSnapshot = { elapsedTime: number; wpm: number; accuracy: number; errors: number; reason: FinishReason };
 
 export function useTypingTest(sourceCode: string, onFinish?: (snapshot: CompletionSnapshot) => void) {
   const [typedCode, setTypedCode] = useState("");
@@ -11,6 +12,7 @@ export function useTypingTest(sourceCode: string, onFinish?: (snapshot: Completi
   const [errors, setErrors] = useState(0);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [finishedAt, setFinishedAt] = useState<number | null>(null);
+  const [finishReason, setFinishReason] = useState<FinishReason | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const typedRef = useRef(typedCode);
 
@@ -44,12 +46,14 @@ export function useTypingTest(sourceCode: string, onFinish?: (snapshot: Completi
       const finalErrors = errors + wrong;
       const finalKeystrokes = totalKeystrokes + accepted.length;
       setFinishedAt(now);
+      setFinishReason("completed");
       setElapsedTime(finalElapsed);
       onFinish?.({
         elapsedTime: finalElapsed,
         wpm: calculateWpm(sourceCode.length, finalElapsed),
         accuracy: calculateAccuracy(finalKeystrokes - finalErrors, finalKeystrokes),
         errors: finalErrors,
+        reason: "completed",
       });
     }
   }, [errors, finishedAt, onFinish, sourceCode, startedAt, totalKeystrokes]);
@@ -57,8 +61,29 @@ export function useTypingTest(sourceCode: string, onFinish?: (snapshot: Completi
   const handleBackspace = useCallback(() => {
     if (finishedAt === null) setTypedCode((value) => value.slice(0, -1));
   }, [finishedAt]);
+
+  const finishSession = useCallback((reason: Exclude<FinishReason, "completed">, elapsedOverride?: number) => {
+    if (finishedAt !== null) return;
+    const now = Date.now();
+    const finalElapsed = elapsedOverride ?? (startedAt === null ? 0 : Math.max(1, Math.floor((now - startedAt) / 1000)));
+    let correctCharacters = 0;
+    for (let index = 0; index < typedRef.current.length; index += 1) {
+      if (typedRef.current[index] === sourceCode[index]) correctCharacters += 1;
+    }
+    setFinishedAt(now);
+    setFinishReason(reason);
+    setElapsedTime(finalElapsed);
+    onFinish?.({
+      elapsedTime: finalElapsed,
+      wpm: calculateWpm(correctCharacters, finalElapsed),
+      accuracy: calculateAccuracy(totalKeystrokes - errors, totalKeystrokes),
+      errors,
+      reason,
+    });
+  }, [errors, finishedAt, onFinish, sourceCode, startedAt, totalKeystrokes]);
+
   const reset = useCallback(() => {
-    setTypedCode(""); setTotalKeystrokes(0); setErrors(0); setStartedAt(null); setFinishedAt(null); setElapsedTime(0);
+    setTypedCode(""); setTotalKeystrokes(0); setErrors(0); setStartedAt(null); setFinishedAt(null); setFinishReason(null); setElapsedTime(0);
   }, []);
 
   const stats = useMemo(() => {
@@ -76,7 +101,7 @@ export function useTypingTest(sourceCode: string, onFinish?: (snapshot: Completi
 
   return {
     sourceCode, typedCode, totalKeystrokes, errors, elapsedTime, isStarted: startedAt !== null,
-    isFinished: finishedAt !== null, appendText, handleBackspace,
+    isFinished: finishedAt !== null, finishReason, appendText, handleBackspace, finishSession,
     handleTab: (size: 2 | 4) => appendText(" ".repeat(size)), handleEnter: () => appendText("\n"), reset, ...stats,
   };
 }

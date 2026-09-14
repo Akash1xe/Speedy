@@ -12,7 +12,9 @@ export type TypingSettings = {
   trainingMode: "normal" | "finger";
 };
 
-export type PracticeSource = { code: string; language: Language; filename?: string };
+export type PracticeSource = { code: string; language: Language; filename?: string; timeLimitMinutes?: number };
+
+export type FinishReason = "completed" | "submitted" | "time";
 
 export type SessionResult = {
   id: string; date: string; language: Language; filename?: string; wpm: number;

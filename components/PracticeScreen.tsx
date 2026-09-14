@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { ArrowLeft, Braces } from "lucide-react";
+import { ArrowLeft, Braces, Send } from "lucide-react";
 import { ProgressBar } from "@/components/ProgressBar";
 import { FingerGuide } from "@/components/FingerGuide";
 import { ResultsModal } from "@/components/ResultsModal";
@@ -33,7 +33,10 @@ export function PracticeScreen({ source, settings, onNewCode }: Props) {
     });
   }, [source.code.length, source.filename, source.language]);
   const typing = useTypingTest(source.code, persistResult);
+  const finishSession = typing.finishSession;
   const keyGuide = getKeyGuide(source.code[typing.currentIndex] ?? "");
+  const timeLimitSeconds = (source.timeLimitMinutes ?? 0) * 60;
+  const remainingTime = timeLimitSeconds ? Math.max(0, timeLimitSeconds - typing.elapsedTime) : undefined;
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
@@ -44,6 +47,12 @@ export function PracticeScreen({ source, settings, onNewCode }: Props) {
     sourceViewportRef.current.scrollTop = target;
     typingViewportRef.current.scrollTop = target;
   }, [settings.autoScroll, settings.fontSize, typing.currentLine]);
+
+  useEffect(() => {
+    if (timeLimitSeconds > 0 && typing.isStarted && !typing.isFinished && typing.elapsedTime >= timeLimitSeconds) {
+      finishSession("time", timeLimitSeconds);
+    }
+  }, [finishSession, timeLimitSeconds, typing.elapsedTime, typing.isFinished, typing.isStarted]);
 
   const syncScroll = useCallback((from: "source" | "typing", top: number) => {
     if (syncingRef.current) return;
@@ -73,10 +82,13 @@ export function PracticeScreen({ source, settings, onNewCode }: Props) {
     <main className="flex h-screen min-h-[700px] flex-col overflow-hidden bg-background">
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-panel px-5 lg:px-7">
         <div className="flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-md border border-accent/30 bg-accent/10 text-accent"><Braces size={17} /></span><span className="font-semibold text-text">CodeType</span></div>
-        <button className="secondary-button h-9 px-3 text-xs" onClick={onNewCode}><ArrowLeft size={14} /> New code</button>
+        <div className="flex items-center gap-2">
+          <button className="primary-button h-9 min-h-0 px-3 text-xs" onClick={() => finishSession("submitted")} disabled={typing.isFinished}><Send size={14} /> Submit</button>
+          <button className="secondary-button h-9 px-3 text-xs" onClick={onNewCode}><ArrowLeft size={14} /> New code</button>
+        </div>
       </header>
       <div className="shrink-0 border-b border-border bg-panel">
-        <TypingStats elapsedTime={typing.elapsedTime} wpm={typing.wpm} accuracy={typing.accuracy} errors={typing.errors} progress={typing.progress} />
+        <TypingStats elapsedTime={typing.elapsedTime} remainingTime={remainingTime} wpm={typing.wpm} accuracy={typing.accuracy} errors={typing.errors} progress={typing.progress} />
         <ProgressBar progress={typing.progress} />
       </div>
       <p id="typing-help" className="sr-only">Type the source code exactly. Tab inserts spaces and Backspace removes the most recent character.</p>
@@ -87,7 +99,7 @@ export function PracticeScreen({ source, settings, onNewCode }: Props) {
           <TypingEditor ref={inputRef} viewportRef={typingViewportRef} typedCode={typing.typedCode} sourceCode={source.code} currentLine={typing.currentLine} currentColumn={typing.currentColumn} focused={focused} finished={typing.isFinished} settings={settings} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} onKeyDown={handleKeyDown} onScroll={(top) => syncScroll("typing", top)} />
         </div>
       </div>
-      {typing.isFinished && <ResultsModal elapsedTime={typing.elapsedTime} wpm={typing.wpm} accuracy={typing.accuracy} errors={typing.errors} characters={source.code.length} correctCharacters={typing.correctCharacters} onRetry={retry} onNewCode={onNewCode} />}
+      {typing.isFinished && <ResultsModal reason={typing.finishReason ?? "submitted"} elapsedTime={typing.elapsedTime} wpm={typing.wpm} accuracy={typing.accuracy} errors={typing.errors} characters={source.code.length} typedCharacters={typing.typedCode.length} correctCharacters={typing.correctCharacters} onRetry={retry} onNewCode={onNewCode} />}
     </main>
   );
 }
