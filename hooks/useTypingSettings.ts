@@ -3,7 +3,17 @@
 import { useCallback, useEffect, useState } from "react";
 import type { TypingSettings } from "@/types/typing";
 
-export const DEFAULT_SETTINGS: TypingSettings = { tabSize: 4, fontSize: 16, showLineNumbers: true, showCurrentSourceCharacter: true, autoScroll: true };
+export const DEFAULT_SETTINGS: TypingSettings = {
+  tabSize: 4,
+  fontSize: 16,
+  showLineNumbers: true,
+  showCurrentSourceCharacter: true,
+  autoScroll: true,
+  showFingerGuide: true,
+  showVirtualKeyboard: true,
+  showShiftHand: true,
+  trainingMode: "normal",
+};
 const SETTINGS_KEY = "codetype-settings";
 
 export function useTypingSettings() {

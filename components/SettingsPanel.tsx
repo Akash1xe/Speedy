@@ -22,6 +22,12 @@ export function SettingsPanel() {
       <SettingRow title="Line numbers" description="Show visual line numbers in both editors."><Toggle label="Show line numbers" checked={settings.showLineNumbers} onChange={(value) => update("showLineNumbers", value)} /></SettingRow>
       <SettingRow title="Current source character" description="Highlight the next expected character."><Toggle label="Show current source character" checked={settings.showCurrentSourceCharacter} onChange={(value) => update("showCurrentSourceCharacter", value)} /></SettingRow>
       <SettingRow title="Auto scroll" description="Keep the current source line in view."><Toggle label="Enable auto scroll" checked={settings.autoScroll} onChange={(value) => update("autoScroll", value)} /></SettingRow>
+      <SettingRow title="Finger guide" description="Show the next key, finger, and modifier above the typing editor."><Toggle label="Show finger guide" checked={settings.showFingerGuide} onChange={(value) => update("showFingerGuide", value)} /></SettingRow>
+      <SettingRow title="Virtual keyboard" description="Highlight the physical key required for the next character."><Toggle label="Show virtual keyboard" checked={settings.showVirtualKeyboard} onChange={(value) => update("showVirtualKeyboard", value)} /></SettingRow>
+      <SettingRow title="Shift hand" description="Show which opposite-hand Shift key to use."><Toggle label="Show shift hand" checked={settings.showShiftHand} onChange={(value) => update("showShiftHand", value)} /></SettingRow>
+      <SettingRow title="Training mode" description="Make finger guidance more prominent without changing typing rules.">
+        <div className="segmented"><button className={settings.trainingMode === "normal" ? "selected" : ""} onClick={() => update("trainingMode", "normal")}>Normal</button><button className={settings.trainingMode === "finger" ? "selected" : ""} onClick={() => update("trainingMode", "finger")}>Finger Practice</button></div>
+      </SettingRow>
       <div className="flex justify-end border-t border-border p-5"><button className="secondary-button" onClick={() => setSettings(DEFAULT_SETTINGS)}><RotateCcw size={15} /> Restore defaults</button></div>
     </div>
   );

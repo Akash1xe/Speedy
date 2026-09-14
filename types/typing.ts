@@ -6,6 +6,10 @@ export type TypingSettings = {
   showLineNumbers: boolean;
   showCurrentSourceCharacter: boolean;
   autoScroll: boolean;
+  showFingerGuide: boolean;
+  showVirtualKeyboard: boolean;
+  showShiftHand: boolean;
+  trainingMode: "normal" | "finger";
 };
 
 export type PracticeSource = { code: string; language: Language; filename?: string };

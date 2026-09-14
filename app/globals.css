@@ -62,6 +62,34 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .typing-caret { display: inline-block; width: 2px; height: 1.18em; margin: 0 -1px; vertical-align: -.18em; background: var(--accent); animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 
+.finger-guide { flex-shrink: 0; border-bottom: 1px solid var(--border); background: var(--panel); padding: .65rem 1rem .75rem; }
+.finger-guide-prominent { background: #18202a; box-shadow: inset 3px 0 var(--accent); }
+.finger-guide-summary { display: grid; grid-template-columns: 1.1fr .7fr 1.25fr 1fr; align-items: center; gap: .75rem; }
+.finger-guide-title { display: flex; align-items: center; gap: .45rem; color: var(--muted); font-size: .65rem; font-weight: 700; letter-spacing: .13em; }
+.guide-value { min-width: 0; }
+.guide-value > span { display: block; margin-bottom: .15rem; color: var(--muted); font-size: .6rem; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
+.guide-value > strong { display: block; overflow: hidden; font-family: var(--font-geist-mono), monospace; font-size: .78rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.guide-key-value { color: var(--accent); font-size: 1rem !important; }
+.finger-guide-prominent .guide-key-value { font-size: 1.25rem !important; }
+.virtual-keyboard { margin: .55rem auto 0; max-width: 31rem; user-select: none; }
+.keyboard-row { display: flex; justify-content: center; gap: 3px; margin-top: 3px; }
+.keyboard-row-indented { padding-left: 1.1rem; }
+.keyboard-row-space { margin-top: 4px; }
+.keyboard-key { display: grid; width: 1.75rem; height: 1.35rem; place-items: center; border: 1px solid #30363d; border-top-color: var(--finger-color, #484f58); border-radius: 3px; background: #0d1117; color: #8b949e; font-family: var(--font-geist-mono), monospace; font-size: .55rem; line-height: 1; transition: border-color .1s, background .1s, color .1s, box-shadow .1s; }
+.keyboard-key-wide { width: 2.6rem; }
+.keyboard-key-shift { width: 3.4rem; }
+.keyboard-key-space { width: 10rem; }
+.keyboard-key-active { border-color: var(--accent); background: rgba(88,166,255,.18); color: #f0f6fc; box-shadow: 0 0 0 1px rgba(88,166,255,.28), 0 0 10px rgba(88,166,255,.12); }
+.finger-lp { --finger-color: #8c6bc4; }
+.finger-lr { --finger-color: #678ac5; }
+.finger-lm { --finger-color: #4a9a9a; }
+.finger-li { --finger-color: #5a9b72; }
+.finger-ri { --finger-color: #9a9251; }
+.finger-rm { --finger-color: #b17b4f; }
+.finger-rr { --finger-color: #a76060; }
+.finger-rp { --finger-color: #9b6082; }
+.finger-thumb { --finger-color: #727983; }
+
 .segmented { display: flex; overflow: hidden; border: 1px solid var(--border); border-radius: .4rem; }
 .segmented button { border-right: 1px solid var(--border); padding: .45rem .7rem; color: var(--muted); font-size: .8rem; }
 .segmented button:last-child { border-right: 0; }
@@ -79,6 +107,12 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 
 @media (max-width: 1023px) {
   .code-scroll { min-height: 300px; }
+}
+@media (max-width: 640px) {
+  .finger-guide-summary { grid-template-columns: repeat(3, 1fr); }
+  .finger-guide-title { grid-column: 1 / -1; }
+  .virtual-keyboard { overflow-x: auto; padding-bottom: .25rem; }
+  .keyboard-row { width: max-content; min-width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }

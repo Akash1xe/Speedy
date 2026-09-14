@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { ArrowLeft, Braces } from "lucide-react";
 import { ProgressBar } from "@/components/ProgressBar";
+import { FingerGuide } from "@/components/FingerGuide";
 import { ResultsModal } from "@/components/ResultsModal";
 import { SourceEditor } from "@/components/SourceEditor";
 import { TypingEditor } from "@/components/TypingEditor";
 import { TypingStats } from "@/components/TypingStats";
 import { useTypingTest } from "@/hooks/useTypingTest";
 import { saveSession } from "@/lib/sessionHistory";
+import { getKeyGuide } from "@/lib/fingerGuide";
 import type { PracticeSource, TypingSettings } from "@/types/typing";
 
 type Props = { source: PracticeSource; settings: TypingSettings; onNewCode: () => void };
@@ -31,6 +33,7 @@ export function PracticeScreen({ source, settings, onNewCode }: Props) {
     });
   }, [source.code.length, source.filename, source.language]);
   const typing = useTypingTest(source.code, persistResult);
+  const keyGuide = getKeyGuide(source.code[typing.currentIndex] ?? "");
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
@@ -79,7 +82,10 @@ export function PracticeScreen({ source, settings, onNewCode }: Props) {
       <p id="typing-help" className="sr-only">Type the source code exactly. Tab inserts spaces and Backspace removes the most recent character.</p>
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <SourceEditor ref={sourceViewportRef} code={source.code} typedCode={typing.typedCode} currentIndex={typing.currentIndex} language={source.language} settings={settings} onScroll={(top) => syncScroll("source", top)} />
-        <TypingEditor ref={inputRef} viewportRef={typingViewportRef} typedCode={typing.typedCode} sourceCode={source.code} currentLine={typing.currentLine} currentColumn={typing.currentColumn} focused={focused} finished={typing.isFinished} settings={settings} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} onKeyDown={handleKeyDown} onScroll={(top) => syncScroll("typing", top)} />
+        <div className="flex min-h-0 flex-1 flex-col">
+          {!typing.isFinished && (settings.showFingerGuide || settings.showVirtualKeyboard) && <FingerGuide guide={keyGuide} settings={settings} />}
+          <TypingEditor ref={inputRef} viewportRef={typingViewportRef} typedCode={typing.typedCode} sourceCode={source.code} currentLine={typing.currentLine} currentColumn={typing.currentColumn} focused={focused} finished={typing.isFinished} settings={settings} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} onKeyDown={handleKeyDown} onScroll={(top) => syncScroll("typing", top)} />
+        </div>
       </div>
       {typing.isFinished && <ResultsModal elapsedTime={typing.elapsedTime} wpm={typing.wpm} accuracy={typing.accuracy} errors={typing.errors} characters={source.code.length} correctCharacters={typing.correctCharacters} onRetry={retry} onNewCode={onNewCode} />}
     </main>
