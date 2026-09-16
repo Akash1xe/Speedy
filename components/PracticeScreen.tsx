@@ -92,9 +92,9 @@ export function PracticeScreen({ source, settings, onNewCode }: Props) {
         <ProgressBar progress={typing.progress} />
       </div>
       <p id="typing-help" className="sr-only">Type the source code exactly. Tab inserts spaces and Backspace removes the most recent character.</p>
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
         <SourceEditor ref={sourceViewportRef} code={source.code} typedCode={typing.typedCode} currentIndex={typing.currentIndex} language={source.language} settings={settings} onScroll={(top) => syncScroll("source", top)} />
-        <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 basis-0 flex-col">
           {!typing.isFinished && (settings.showFingerGuide || settings.showVirtualKeyboard) && <FingerGuide guide={keyGuide} settings={settings} />}
           <TypingEditor ref={inputRef} viewportRef={typingViewportRef} typedCode={typing.typedCode} sourceCode={source.code} currentLine={typing.currentLine} currentColumn={typing.currentColumn} focused={focused} finished={typing.isFinished} settings={settings} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} onKeyDown={handleKeyDown} onScroll={(top) => syncScroll("typing", top)} />
         </div>
