@@ -18,7 +18,7 @@ export const TypingEditor = memo(forwardRef<HTMLTextAreaElement, Props>(function
       </div>
       <div className="relative min-h-0 flex-1">
         <div ref={viewportRef} onScroll={(e) => onScroll(e.currentTarget.scrollTop)} className="code-scroll absolute inset-0 cursor-text" style={{ fontSize: settings.fontSize, lineHeight: 1.65 }}>
-          <div className="min-w-max py-4">
+          <div className="min-w-0 py-4">
             {lines.map((line, lineIndex) => {
               const lineStart = globalIndex;
               globalIndex += line.length + (lineIndex < lines.length - 1 ? 1 : 0);
@@ -26,7 +26,7 @@ export const TypingEditor = memo(forwardRef<HTMLTextAreaElement, Props>(function
               return (
                 <div key={lineIndex} className={`code-line ${lineIndex === lines.length - 1 ? "current-code-line" : ""}`}>
                   {settings.showLineNumbers && <span className="line-number">{lineIndex + 1}</span>}
-                  <pre className="m-0 min-h-[1.65em] whitespace-pre font-mono">{runs.map((run, index) => <span key={index} className={run.correct ? "typed-correct" : "typed-incorrect"}>{run.text}</span>)}{lineIndex === lines.length - 1 && !finished && <span className="typing-caret" />}</pre>
+                  <pre className="code-content m-0 min-h-[1.65em] font-mono">{runs.map((run, index) => <span key={index} className={run.correct ? "typed-correct" : "typed-incorrect"}>{run.text}</span>)}{lineIndex === lines.length - 1 && !finished && <span data-typing-caret className="typing-caret" />}</pre>
                 </div>
               );
             })}

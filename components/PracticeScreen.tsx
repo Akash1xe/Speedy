@@ -41,12 +41,27 @@ export function PracticeScreen({ source, settings, onNewCode }: Props) {
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   useEffect(() => {
-    if (!settings.autoScroll || !sourceViewportRef.current || !typingViewportRef.current) return;
-    const lineHeight = settings.fontSize * 1.65;
-    const target = Math.max(0, (typing.currentLine - 4) * lineHeight);
-    sourceViewportRef.current.scrollTop = target;
-    typingViewportRef.current.scrollTop = target;
-  }, [settings.autoScroll, settings.fontSize, typing.currentLine]);
+    if (!settings.autoScroll) return;
+
+    const keepCursorVisible = (viewport: HTMLDivElement | null, selector: string) => {
+      const cursor = viewport?.querySelector<HTMLElement>(selector);
+      if (!viewport || !cursor) return;
+      const viewportRect = viewport.getBoundingClientRect();
+      const cursorRect = cursor.getBoundingClientRect();
+      const margin = settings.fontSize * 3.3;
+      if (cursorRect.bottom > viewportRect.bottom - margin) {
+        viewport.scrollTop += cursorRect.bottom - viewportRect.bottom + margin;
+      } else if (cursorRect.top < viewportRect.top + margin) {
+        viewport.scrollTop -= viewportRect.top + margin - cursorRect.top;
+      }
+    };
+
+    syncingRef.current = true;
+    keepCursorVisible(sourceViewportRef.current, "[data-source-cursor]");
+    keepCursorVisible(typingViewportRef.current, "[data-typing-caret]");
+    const frame = requestAnimationFrame(() => { syncingRef.current = false; });
+    return () => cancelAnimationFrame(frame);
+  }, [settings.autoScroll, settings.fontSize, typing.currentIndex]);
 
   useEffect(() => {
     if (timeLimitSeconds > 0 && typing.isStarted && !typing.isFinished && typing.elapsedTime >= timeLimitSeconds) {
@@ -79,7 +94,7 @@ export function PracticeScreen({ source, settings, onNewCode }: Props) {
   };
 
   return (
-    <main className="flex h-screen min-h-[700px] flex-col overflow-hidden bg-background">
+    <main className="flex h-dvh min-h-0 flex-col overflow-hidden bg-background">
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-panel px-5 lg:px-7">
         <div className="flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-md border border-accent/30 bg-accent/10 text-accent"><Braces size={17} /></span><span className="font-semibold text-text">CodeType</span></div>
         <div className="flex items-center gap-2">
@@ -92,9 +107,9 @@ export function PracticeScreen({ source, settings, onNewCode }: Props) {
         <ProgressBar progress={typing.progress} />
       </div>
       <p id="typing-help" className="sr-only">Type the source code exactly. Tab inserts spaces and Backspace removes the most recent character.</p>
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
         <SourceEditor ref={sourceViewportRef} code={source.code} typedCode={typing.typedCode} currentIndex={typing.currentIndex} language={source.language} settings={settings} onScroll={(top) => syncScroll("source", top)} />
-        <div className="flex min-h-0 min-w-0 flex-1 basis-0 flex-col">
+        <div className="flex h-[70dvh] min-h-0 min-w-0 flex-none flex-col lg:h-auto lg:flex-1 lg:basis-0">
           {!typing.isFinished && (settings.showFingerGuide || settings.showVirtualKeyboard) && <FingerGuide guide={keyGuide} settings={settings} />}
           <TypingEditor ref={inputRef} viewportRef={typingViewportRef} typedCode={typing.typedCode} sourceCode={source.code} currentLine={typing.currentLine} currentColumn={typing.currentColumn} focused={focused} finished={typing.isFinished} settings={settings} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} onKeyDown={handleKeyDown} onScroll={(top) => syncScroll("typing", top)} />
         </div>
